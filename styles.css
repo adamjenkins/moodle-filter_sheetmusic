@@ -1,0 +1,11 @@
+/* Sheet music filter styles. */
+
+.sheetmusic-block {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.sheetmusic-block svg {
+    max-width: 100%;
+    height: auto;
+}
