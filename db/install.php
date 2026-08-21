@@ -28,5 +28,23 @@
  * @return void
  */
 function xmldb_filter_sheetmusic_install() {
+    global $DB;
+
     filter_set_global_state('sheetmusic', TEXTFILTER_ON, 0);
+
+    // Run before every other filter.
+    //
+    // Score sources are plain text, and core's phrase filters (activitynames, glossary,
+    // urltolink) do not treat <pre> as a region to leave alone — their ignore list covers
+    // <nolink>, <script>, <textarea>, <select> and <a>, but not <pre> (lib/filterlib.php,
+    // filter_phrases()). A phrase filter running first would rewrite text inside a stored
+    // score and corrupt the notation. Going first means this filter's output, which is
+    // wrapped in <nolink>, is already protected by the time they run.
+    $guard = 0;
+    while ($DB->get_field('filter_active', 'sortorder', ['filter' => 'sheetmusic', 'contextid' => 1]) > 1) {
+        filter_set_global_state('sheetmusic', TEXTFILTER_ON, -1);
+        if (++$guard > 100) {
+            break;
+        }
+    }
 }
