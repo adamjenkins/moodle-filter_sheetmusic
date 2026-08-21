@@ -1,0 +1,6 @@
+{
+  "name": "filter-sheetmusic",
+  "private": true,
+  "type": "module",
+  "description": "Marks amd/src as ES modules so they can be unit tested with node."
+}
