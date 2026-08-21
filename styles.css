@@ -9,3 +9,20 @@
     max-width: 100%;
     height: auto;
 }
+
+/*
+ * Engrave in the surrounding text colour rather than in black.
+ *
+ * Verovio emits no fill attribute at all, so every glyph falls back to SVG's initial
+ * fill of black, and its inner "definition-scale" element hard-codes color="black",
+ * which pins the currentColor that Verovio's own strokes use. Both are presentation
+ * attributes, so a CSS rule overrides them. Without this, notation stays black on any
+ * theme with a dark content surface: measured against the effective backdrop of the
+ * score on a dark-surface theme, 1.19:1 before and 13.54:1 after (2026-08-21,
+ * Chromium + axe probe). On the default light Boost surface the change is cosmetically
+ * invisible and still far above AA (21:1 black, 16.2:1 body colour).
+ */
+.sheetmusic-render svg {
+    color: inherit;
+    fill: currentColor;
+}
