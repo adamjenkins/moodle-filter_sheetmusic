@@ -8,6 +8,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -69,17 +70,16 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: ${{ matrix.extensions }}
           ini-values: max_input_vars=5000, opcache.enable_cli=1
           coverage: none
 
       - name: Initialise moodle-plugin-ci
         run: |
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
-          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
-          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+          (cd ci/bin && pwd) >> "$GITHUB_PATH"
+          (cd ci/vendor/bin && pwd) >> "$GITHUB_PATH"
           sudo locale-gen en_AU.UTF-8
-          echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
+          echo "NVM_DIR=$HOME/.nvm" >> "$GITHUB_ENV"
 
       - name: Queue the local_sheetmusic dependency
         # version.php declares a hard dependency on local_sheetmusic, so the test site
@@ -144,7 +144,7 @@ jobs:
         if: ${{ failure() && steps.behat.outcome == 'failure' }}
         uses: actions/upload-artifact@v7
         with:
-          name: Behat Faildump (${{ join(matrix.*, ', ') }})
+          name: Behat Faildump (${{ matrix.moodle-branch }}, php${{ matrix.php }}, ${{ matrix.database }})
           path: ${{ github.workspace }}/moodledata/behat_dump
           retention-days: 7
           if-no-files-found: ignore
@@ -156,6 +156,7 @@ jobs:
   js:
     name: JavaScript unit tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
@@ -163,7 +164,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
