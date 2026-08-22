@@ -84,12 +84,15 @@ jobs:
       - name: Queue the local_sheetmusic dependency
         # version.php declares a hard dependency on local_sheetmusic, so the test site
         # cannot be installed without it. add-plugin clones it into
-        # $HOME/moodle-plugin-ci-plugins, which the install step below reads with
-        # --extra-plugins.
+        # a storage directory whose absolute path it records as EXTRA_PLUGINS_DIR in
+        # moodle-plugin-ci's own .env, which the install step below picks up on its own. Passing
+        # --extra-plugins explicitly is what broke this before: add-plugin's default storage is a
+        # RELATIVE path created in the step's working directory, not under $HOME, so the guessed
+        # $HOME/moodle-plugin-ci-plugins did not exist and install died in realpath().
         run: moodle-plugin-ci add-plugin --branch main adamjenkins/moodle-local_sheetmusic
 
       - name: Install moodle-plugin-ci
-        run: moodle-plugin-ci install --plugin ./plugin --extra-plugins "$HOME/moodle-plugin-ci-plugins" --db-host=127.0.0.1
+        run: moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
