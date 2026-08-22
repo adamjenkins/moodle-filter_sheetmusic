@@ -1,6 +1,12 @@
 {
-  "name": "filter-sheetmusic",
+  "name": "filter_sheetmusic",
   "private": true,
   "type": "module",
-  "description": "Marks amd/src as ES modules so they can be unit tested with node."
+  "description": "Marks amd/src as ES modules and lets node resolve the Moodle AMD module name in unit tests.",
+  "exports": {
+    "./loader": "./amd/src/loader.js"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  }
 }

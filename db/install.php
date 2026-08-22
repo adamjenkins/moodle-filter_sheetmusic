@@ -41,7 +41,8 @@ function xmldb_filter_sheetmusic_install() {
     // score and corrupt the notation. Going first means this filter's output, which is
     // wrapped in <nolink>, is already protected by the time they run.
     $guard = 0;
-    while ($DB->get_field('filter_active', 'sortorder', ['filter' => 'sheetmusic', 'contextid' => 1]) > 1) {
+    $systemid = \context_system::instance()->id;
+    while ($DB->get_field('filter_active', 'sortorder', ['filter' => 'sheetmusic', 'contextid' => $systemid]) > 1) {
         filter_set_global_state('sheetmusic', TEXTFILTER_ON, -1);
         if (++$guard > 100) {
             break;

@@ -158,12 +158,129 @@ final class text_filter_test extends \advanced_testcase {
     /**
      * The source is HTML escaped on the way out.
      *
+     * The body is written the way HTMLPurifier stores it - the author typed the characters and
+     * the purifier encoded them - so the filter's job is to decode once for the engine and hand
+     * the text back encoded, not live.
+     *
      * @return void
      */
     public function test_source_is_escaped(): void {
+        $body = 'X:1' . "\n" . 'K:G' . "\n"
+            . '% &lt;script&gt;alert(1)&lt;/script&gt; &amp; "quoted" 3 &lt; 4' . "\n" . '|GABc|';
+        $out = $this->filter->filter('<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>');
+
+        // Proving the block was rendered is what stops the rest of this test being vacuous: the
+        // input is already encoded, so every escaping assertion below is equally satisfied by a
+        // filter that returns its input untouched.
+        $this->assertStringContainsString('sheetmusic-block', $out);
+
+        $this->assertStringNotContainsString('<script', $out);
+        $this->assertStringContainsString('&lt;script&gt;', $out);
+        $this->assertStringContainsString('3 &lt; 4', $out);
+        $this->assertStringContainsString('&amp;', $out);
+        // A literal quote survives purification as a quote, and has to leave here encoded. This
+        // is the one assertion the identity function cannot satisfy on its own.
+        $this->assertStringContainsString('&quot;quoted&quot;', $out);
+    }
+
+    /**
+     * Escaping is not something a filter that does nothing can be credited with.
+     *
+     * A previous version of test_source_is_escaped() used an already-encoded fixture and asserted
+     * only on that same encoded form. Because every refusal path returns the original element,
+     * a filter that did nothing at all passed it. This pins that hole shut directly.
+     *
+     * @return void
+     */
+    public function test_doing_nothing_does_not_count_as_escaping(): void {
         $in = '<pre class="sheetmusic sheetmusic-abc">X:1' . "\n" . 'K:G' . "\n" . '% a &amp; b</pre>';
         $out = $this->filter->filter($in);
-        $this->assertStringNotContainsString('a & b', $out);
-        $this->assertStringContainsString('a &amp; b', $out);
+
+        $this->assertNotSame($in, $out, 'the filter must actually transform a valid score');
+        $this->assertStringContainsString('sheetmusic-block', $out);
+        $this->assertStringContainsString('sheetmusic-source', $out);
+    }
+
+    /**
+     * A numeric character reference in the source survives the round trip unchanged.
+     *
+     * Moodle's s() hands numeric references back un-escaped, which would turn a source containing
+     * the literal characters "&#60;" into a live reference decoding to "<" before the engine ever
+     * saw it. The filter escapes with htmlspecialchars() precisely to avoid that.
+     *
+     * @return void
+     */
+    public function test_numeric_character_references_survive_the_round_trip(): void {
+        // Stored the way an author who literally typed "&#60;" has it stored after purification.
+        $body = 'X:1' . "\n" . 'K:G' . "\n" . '% &amp;#60;not a tag&amp;#62;' . "\n" . '|GABc|';
+        $out = $this->filter->filter('<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>');
+
+        $this->assertStringContainsString('sheetmusic-block', $out);
+        $this->assertStringContainsString('&amp;#60;', $out);
+        $this->assertStringNotContainsString('&#60;n', $out, 'the reference must not be re-armed');
+    }
+
+    /**
+     * A pre element that is not a score is handed back byte for byte.
+     *
+     * @return void
+     */
+    public function test_non_score_pre_is_untouched(): void {
+        $in = '<pre class="language-php">$x = 1; // mentions sheetmusic in passing</pre>';
+        $this->assertSame($in, $this->filter->filter($in));
+    }
+
+    /**
+     * A source past the inline size limit is refused rather than rendered.
+     *
+     * The limit is not cosmetic: engraving cost is linear in source length and is paid by every
+     * reader of the page, on the browser's main thread.
+     *
+     * @return void
+     */
+    public function test_oversized_source_is_refused(): void {
+        $body = 'X:1' . "\n" . 'K:G' . "\n"
+            . str_repeat('|GABc dedB', (int) (\local_sheetmusic\local\source::MAX_INLINE_BYTES / 10) + 64);
+        $in = '<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>';
+
+        $this->assertGreaterThan(\local_sheetmusic\local\source::MAX_INLINE_BYTES, strlen($body));
+        $out = $this->filter->filter($in);
+        $this->assertStringNotContainsString('sheetmusic-block', $out);
+        $this->assertSame($in, $out, 'an oversized block is left exactly as it was found');
+    }
+
+    /**
+     * The limit applies to the decoded source, not to the stored bytes.
+     *
+     * A body made of entities is several times longer stored than it is once decoded, and it is
+     * the decoded string the engine receives and pays for. Measuring the stored length would
+     * refuse scores that are well inside the bound.
+     *
+     * @return void
+     */
+    public function test_limit_measures_the_decoded_source(): void {
+        // Each "&amp;" is five stored bytes decoding to one, so at 15000 repetitions the body is
+        // 75KB as stored and 15KB once decoded: over the limit on the measure that would be wrong
+        // and comfortably under it on the measure that is right.
+        $body = 'X:1' . "\n" . 'K:G' . "\n" . '% ' . str_repeat('&amp;', 15000) . "\n" . '|GABc|';
+
+        $this->assertGreaterThan(\local_sheetmusic\local\source::MAX_INLINE_BYTES, strlen($body));
+        $out = $this->filter->filter('<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>');
+        $this->assertStringContainsString('sheetmusic-block', $out, 'judged on the decoded length');
+    }
+
+    /**
+     * A source just inside the limit still renders, so the bound is a ceiling and not a cliff.
+     *
+     * @return void
+     */
+    public function test_source_just_inside_the_limit_is_rendered(): void {
+        $header = 'X:1' . "\n" . 'K:G' . "\n";
+        $fill = \local_sheetmusic\local\source::MAX_INLINE_BYTES - strlen($header) - 16;
+        $body = $header . str_repeat('|GABc dedB', (int) ($fill / 10));
+
+        $this->assertLessThanOrEqual(\local_sheetmusic\local\source::MAX_INLINE_BYTES, strlen($body));
+        $out = $this->filter->filter('<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>');
+        $this->assertStringContainsString('sheetmusic-block', $out);
     }
 }

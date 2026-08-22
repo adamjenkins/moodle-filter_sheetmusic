@@ -21,10 +21,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {hydrateAll} from 'local_sheetmusic/render';
+import {observe} from 'local_sheetmusic/render';
 
 /**
- * Hydrate every score on the page, now and whenever Moodle inserts more filtered content.
+ * Watch every score on the page, now and whenever Moodle inserts more filtered content.
+ *
+ * Deferred rather than immediate: engraving is synchronous WebAssembly costing hundreds of
+ * milliseconds a score, and a page routinely carries more scores than fit on a screen, so
+ * the work waits until the reader actually reaches one.
  *
  * Quiz review, inline forum replies and the drawers all insert already filtered HTML after
  * page load, so listening for contentUpdated is not optional: without it those scores stay
@@ -33,13 +37,13 @@ import {hydrateAll} from 'local_sheetmusic/render';
  * @returns {void}
  */
 export const init = () => {
-    hydrateAll(document);
+    observe(document);
 
     document.addEventListener('core_filters/contentUpdated', (event) => {
         const nodes = event.detail && event.detail.nodes ? event.detail.nodes : [];
         [...nodes].forEach((node) => {
             if (node && node.querySelectorAll) {
-                hydrateAll(node);
+                observe(node);
             }
         });
     });

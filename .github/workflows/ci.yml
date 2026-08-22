@@ -152,3 +152,40 @@ jobs:
       - name: Mark cancelled jobs as failed.
         if: ${{ cancelled() }}
         run: exit 1
+
+  js:
+    name: JavaScript unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dev dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run the specs
+        # moodle-plugin-ci does not run these: they are plain node scripts driving the AMD
+        # modules directly, and for this suite they are where most of the behaviour is proved.
+        # Each spec prints its own summary line and exits non-zero on the first failed
+        # assertion, so a spec that silently ran nothing cannot pass unnoticed.
+        run: |
+          set -e
+          shopt -s nullglob
+          ran=0
+          for spec in tests/jsfixtures/*.spec.js; do
+            echo "== $spec"
+            node "$spec"
+            ran=$((ran + 1))
+          done
+          if [ "$ran" -eq 0 ]; then
+            echo "No JavaScript specs were executed - refusing to report success." >&2
+            exit 1
+          fi
+          echo "$ran spec file(s) passed."

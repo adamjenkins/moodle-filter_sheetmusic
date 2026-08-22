@@ -107,6 +107,12 @@ class text_filter extends \core_filters\text_filter {
         }
 
         $pattern = '/<pre\b[^>]*\bclass\s*=\s*"([^"]*)"[^>]*>(.*?)<\/pre>/is';
+        // Null rather than an exception is what preg_replace_callback() returns when a subject
+        // exhausts pcre.backtrack_limit, which the lazy (.*?) does at a body of about a million
+        // bytes on the default 1,000,000 setting. Falling back to the unmodified chunk is the safe
+        // outcome: the source stays on the page as escaped text and nothing is rendered. Bodies
+        // that large are refused by the size check in render_block() anyway, so this is a
+        // backstop for a chunk whose <pre> never terminates.
         $result = preg_replace_callback($pattern, function (array $matches): string {
             return $this->render_block($matches[0], $matches[1], $matches[2]);
         }, $chunk);
@@ -146,6 +152,12 @@ class text_filter extends \core_filters\text_filter {
             return $original;
         }
 
+        // The size limit is enforced once, by source::validate(), and it is enforced against the
+        // decoded source rather than the stored bytes - that is the string the engine receives
+        // and whose length the engraving cost is proportional to. An earlier revision bailed out
+        // here on strlen($body) as a cheap pre-filter, which was wrong: decoding only ever
+        // shortens, so a body of entities that comes in comfortably under the limit once decoded
+        // was being refused on its encoded length.
         $raw = source::normalise(html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         if (!source::validate($raw, $format)) {
             return $original;
@@ -159,7 +171,15 @@ class text_filter extends \core_filters\text_filter {
 
         // The source stays visible until the client-side renderer replaces it, so a reader
         // without JavaScript, or with the engine unavailable, still gets readable notation.
-        $fallback = \html_writer::tag('pre', s($raw), ['class' => 'sheetmusic-source']);
+        //
+        // htmlspecialchars() rather than s(): s() deliberately hands numeric character references
+        // back un-escaped, so a source legitimately containing the eight characters "&#60;" would
+        // be re-emitted as a live character reference and reach the engine as "<". For ordinary
+        // page text that is the helpful behaviour; for a score source, which this plugin promises
+        // to preserve byte for byte, it is corruption. This escapes strictly more than s() does,
+        // never less.
+        $escaped = htmlspecialchars($raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $fallback = \html_writer::tag('pre', $escaped, ['class' => 'sheetmusic-source']);
 
         return '<nolink>' . \html_writer::tag('div', $fallback, $attributes) . '</nolink>';
     }
