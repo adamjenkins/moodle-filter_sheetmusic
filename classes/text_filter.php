@@ -24,6 +24,7 @@
 
 namespace filter_sheetmusic;
 
+use local_sheetmusic\local\display;
 use local_sheetmusic\local\formats;
 use local_sheetmusic\local\source;
 
@@ -163,11 +164,14 @@ class text_filter extends \core_filters\text_filter {
             return $original;
         }
 
+        // The staff size and whether playback is offered are site settings, and they are put on
+        // the placeholder rather than fetched by the client: the suite has no web service, and
+        // format_text() runs in places from which the client could make no request of its own.
         $attributes = [
             'class' => 'sheetmusic-block',
             'data-sheetmusic-format' => $format,
             'data-sheetmusic-label' => source::describe($raw, $format),
-        ];
+        ] + display::attributes();
 
         // The source stays visible until the client-side renderer replaces it, so a reader
         // without JavaScript, or with the engine unavailable, still gets readable notation.

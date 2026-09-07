@@ -15,6 +15,10 @@ K:G
 With the filter switched off, that source stays on the page as readable notation rather than
 disappearing — the content survives the plugin.
 
+Rendered scores can also be **played**: the transport, the note highlighting and the synthesised
+sound all come from `local_sheetmusic`, and this filter's part is to tell the client whether the
+site allows it. See that plugin's README.
+
 ## Requirements
 
 Moodle 4.5 or later, and `local_sheetmusic`.

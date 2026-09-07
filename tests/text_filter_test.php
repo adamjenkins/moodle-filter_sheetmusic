@@ -76,6 +76,31 @@ final class text_filter_test extends \advanced_testcase {
     }
 
     /**
+     * The placeholder carries the site's display settings, so the client needs no round trip.
+     *
+     * @return void
+     */
+    public function test_placeholder_carries_display_settings(): void {
+        set_config('defaultscale', 'l', 'local_sheetmusic');
+        set_config('playback', 1, 'local_sheetmusic');
+        $out = $this->filter->filter($this->stored());
+        $this->assertStringContainsString('data-sheetmusic-scale="l"', $out);
+        $this->assertStringContainsString('data-sheetmusic-play="1"', $out);
+    }
+
+    /**
+     * A site that has turned playback off says so on every placeholder.
+     *
+     * @return void
+     */
+    public function test_playback_can_be_turned_off(): void {
+        set_config('playback', 0, 'local_sheetmusic');
+        $out = $this->filter->filter($this->stored());
+        $this->assertStringContainsString('data-sheetmusic-play="0"', $out);
+        $this->assertStringNotContainsString('data-sheetmusic-play="1"', $out);
+    }
+
+    /**
      * The placeholder carries an accessible label describing the score.
      *
      * @return void
