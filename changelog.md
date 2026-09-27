@@ -3,6 +3,12 @@
 All notable changes to `filter_sheetmusic` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Declare Moodle 5.3 support.
+
 ## [0.2.0] - 2026-09-07
 
 ### Added
