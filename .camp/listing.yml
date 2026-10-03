@@ -1,0 +1,23 @@
+# camp listing manifest — descriptive content for your plugin's page.
+# Edit freely and commit; camp ingests this file at each tagged release.
+# Schema: https://camp-registry.org/schema/listing.schema.json
+name: filter_sheetmusic
+summary: 'A Moodle text filter that engraves sheet music stored as ABC notation wherever Moodle displays text, with optional in-browser playback.'
+description: |
+  Turns scores stored as `<pre class="sheetmusic sheetmusic-abc">` blocks
+  into engraved notation in pages, books, forum posts, assignment descriptions,
+  quiz questions and glossary entries. With the filter switched off the ABC
+  source stays readable on the page, so content survives the plugin. Requires
+  local_sheetmusic, which does the rendering and playback; for music teachers
+  who want notation inside ordinary Moodle content.
+labels:
+  # Required disclosure labels — pick all that apply (RFC §4.7):
+  #   fully-free | freemium | paid-service | external-account
+  #   donation-supported | commercial-support-available
+  - fully-free
+# screenshots:
+#   - path: .camp/screenshots/overview.png
+#     caption: Main view
+links:
+  docs: https://github.com/adamjenkins/moodle-filter_sheetmusic#readme
+  issues: https://github.com/adamjenkins/moodle-filter_sheetmusic/issues
