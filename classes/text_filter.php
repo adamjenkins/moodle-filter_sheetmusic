@@ -50,6 +50,15 @@ class text_filter extends \core_filters\text_filter {
     private static bool $jsqueued = false;
 
     /**
+     * Longest visible text treated as a shortened summary when a score ends in shorten_text()'s
+     * "..." (Moodle's summaries shorten to 140-300 characters; see shortened_source()).
+     */
+    private const SUMMARY_MAX_CHARS = 500;
+
+    /** @var bool Whether the text being filtered is short enough to be a shortened summary. */
+    private bool $summarysized = false;
+
+    /**
      * Queue the client-side loader once per request.
      *
      * @param \moodle_page $page The page the filter is running on.
@@ -76,6 +85,9 @@ class text_filter extends \core_filters\text_filter {
         if (!is_string($text) || $text === '' || strpos($text, self::MARKER) === false) {
             return $text;
         }
+
+        $visible = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $this->summarysized = \core_text::strlen($visible) <= self::SUMMARY_MAX_CHARS;
 
         // Split out the regions where a score block is being shown rather than used. The
         // delimiters are captured so they can be reassembled untouched.
@@ -160,6 +172,20 @@ class text_filter extends \core_filters\text_filter {
         // shortens, so a body of entities that comes in comfortably under the limit once decoded
         // was being refused on its encoded length.
         $raw = source::normalise(html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+        // A summary that shortened the stored text before filtering (mod_assign's online-text
+        // summary does: shorten_text() at 140 characters, then format_text()) hands over a score
+        // cut off mid-way. Engraving it would present a fragment as the whole score, so show the
+        // source with a note instead; the full view, which is not shortened, engraves it.
+        if ($this->shortened_source($raw)) {
+            $escaped = htmlspecialchars($raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            return \html_writer::div(
+                \html_writer::tag('p', get_string('shortened', 'filter_sheetmusic'), ['class' => 'small text-muted mb-1']) .
+                \html_writer::tag('pre', $escaped, ['class' => 'sheetmusic-source']),
+                'sheetmusic-shortened'
+            );
+        }
+
         if (!source::validate($raw, $format)) {
             return $original;
         }
@@ -186,5 +212,20 @@ class text_filter extends \core_filters\text_filter {
         $fallback = \html_writer::tag('pre', $escaped, ['class' => 'sheetmusic-source']);
 
         return '<nolink>' . \html_writer::tag('div', $fallback, $attributes) . '</nolink>';
+    }
+
+    /**
+     * Whether a score source looks cut off by shorten_text().
+     *
+     * shorten_text() cuts at a word boundary and appends "..." before closing the open tags, so a
+     * shortened score's source ends in "...". A complete score may also end that way (a lyric
+     * line, say), so this only counts when the whole filtered text is summary-sized: a summary is
+     * at most a few hundred characters, and shorten_text() never changes text under its limit.
+     *
+     * @param string $raw The decoded, normalised source.
+     * @return bool
+     */
+    private function shortened_source(string $raw): bool {
+        return $this->summarysized && str_ends_with(rtrim($raw), '...');
     }
 }

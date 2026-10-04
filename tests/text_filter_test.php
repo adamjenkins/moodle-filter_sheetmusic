@@ -308,4 +308,41 @@ final class text_filter_test extends \advanced_testcase {
         $out = $this->filter->filter('<pre class="sheetmusic sheetmusic-abc">' . $body . '</pre>');
         $this->assertStringContainsString('sheetmusic-block', $out);
     }
+
+    /**
+     * A score cut off by shorten_text(), as mod_assign's online-text summary does before filtering,
+     * is shown as source with a note rather than engraved as if it were the whole score.
+     *
+     * @return void
+     */
+    public function test_shortened_summary_is_not_engraved(): void {
+        $full = '<p>Answer:</p><pre class="sheetmusic sheetmusic-abc">X:1' . "\n" . 'M:4/4' . "\n" . 'K:C' . "\n"
+            . 'CDEF GABc | cBAG FEDC | CEGc BGEC | D2F2 A2c2 | B4 G4 | E2C2 D4 | C8 |]' . "\n"
+            . 'w: la la la la la la la la la la la la la la la la la la la la la la la la</pre>';
+        $short = shorten_text($full, 140);
+        $this->assertNotSame($full, $short, 'fixture must actually be shortened');
+
+        $out = $this->filter->filter($short);
+        $this->assertStringNotContainsString('sheetmusic-block', $out);
+        $this->assertStringContainsString(get_string('shortened', 'filter_sheetmusic'), $out);
+        $this->assertStringContainsString('CDEF GABc', $out);
+
+        // The unshortened text, as the full submission view shows it, is still engraved.
+        $this->assertStringContainsString('sheetmusic-block', $this->filter->filter($full));
+    }
+
+    /**
+     * A complete score that happens to end in "..." is still engraved on a full-length page: only a
+     * summary-sized text counts as shortened.
+     *
+     * @return void
+     */
+    public function test_complete_score_ending_in_dots_is_engraved(): void {
+        $intro = '<p>' . str_repeat('This week we sing a round together and listen for the entries. ', 10) . '</p>';
+        $score = '<pre class="sheetmusic sheetmusic-abc">X:1' . "\n" . 'K:G' . "\n" . '|GABc dedB|' . "\n"
+            . 'w: and so on ...</pre>';
+        $out = $this->filter->filter($intro . $score);
+        $this->assertStringContainsString('sheetmusic-block', $out);
+        $this->assertStringNotContainsString(get_string('shortened', 'filter_sheetmusic'), $out);
+    }
 }

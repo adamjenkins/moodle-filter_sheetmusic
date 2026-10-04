@@ -3,6 +3,14 @@
 All notable changes to `filter_sheetmusic` are documented here.
 The full history is in [`changelog.md`](changelog.md).
 
+## [Unreleased]
+
+### Fixed
+
+- A score cut short by a summary (the assignment online-text summary shortens a submission before
+  filtering it) is no longer engraved as if it were complete: its source is shown with a note to
+  open the full text, where the whole score is engraved.
+
 ## [0.2.1] - 2026-10-04
 
 ### Added

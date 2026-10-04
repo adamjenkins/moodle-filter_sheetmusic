@@ -26,3 +26,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['filtername'] = 'Sheet music';
 $string['privacy:metadata'] = 'The Sheet music filter does not store any personal data.';
+$string['shortened'] = 'This score is shortened here. Open the full text to see it engraved.';
