@@ -3,7 +3,13 @@
 All notable changes to `filter_sheetmusic` are documented here.
 The full history is in [`changelog.md`](changelog.md).
 
-## [Unreleased]
+## [0.2.1] - 2026-10-04
+
+### Added
+
+- `composer.json`, so the plugin can be installed with Composer as
+  `adamjenkins/moodle-filter_sheetmusic`. It requires `adamjenkins/moodle-local_sheetmusic` 0.2 or
+  later (below 1.0).
 
 ### Changed
 
