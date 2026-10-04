@@ -1,9 +1,9 @@
 # Changelog
 
-All notable changes to `filter_sheetmusic` are documented here.
+Release notes for this version of `filter_sheetmusic`.
 The full history is in [`changelog.md`](changelog.md).
 
-## [Unreleased]
+## [0.2.2] - 2026-10-04
 
 ### Fixed
 
@@ -11,32 +11,10 @@ The full history is in [`changelog.md`](changelog.md).
   filtering it) is no longer engraved as if it were complete: its source is shown with a note to
   open the full text, where the whole score is engraved.
 
-## [0.2.1] - 2026-10-04
-
-### Added
-
-- `composer.json`, so the plugin can be installed with Composer as
-  `adamjenkins/moodle-filter_sheetmusic`. It requires `adamjenkins/moodle-local_sheetmusic` 0.2 or
-  later (below 1.0).
-
 ### Changed
 
-- Declare Moodle 5.3 support.
-
-## [0.2.0] - 2026-09-07
-
-### Added
-
-- Score placeholders now carry the site's display settings, so a reader can play a score and so
-  the staff-size setting takes effect. The values ride on the placeholder rather than being
-  fetched by the client, because the suite has no web service and `format_text()` runs in places
-  from which the client could make no request of its own.
-
-### Requirements
-
-- Now requires `local_sheetmusic` 0.2.0 or later.
-
-## [0.1.0] - 2026-08-22
-
-Initial release: renders stored sheet music wherever Moodle displays text, and leaves the source
-readable on the page when the filter is off or JavaScript is unavailable.
+- Maturity is now Beta (was Alpha).
+- Installing with Composer no longer caps the Moodle version: `composer.json` now requires
+  `moodle/moodle` `^4.5 || ^5.0` (was `>=4.5 <5.4`).
+- Continuous integration now tests against the released Moodle 5.3 (`MOODLE_503_STABLE`) instead
+  of Moodle's development branch.

@@ -3,13 +3,21 @@
 All notable changes to `filter_sheetmusic` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.2] - 2026-10-04
 
 ### Fixed
 
 - A score cut short by a summary (the assignment online-text summary shortens a submission before
   filtering it) is no longer engraved as if it were complete: its source is shown with a note to
   open the full text, where the whole score is engraved.
+
+### Changed
+
+- Maturity raised from `MATURITY_ALPHA` to `MATURITY_BETA`.
+- `composer.json` uses a caret constraint for `moodle/moodle` (`^4.5 || ^5.0`, was `>=4.5 <5.4`),
+  so new Moodle 5.x releases are not excluded.
+- CI tests `MOODLE_503_STABLE` (blocking) instead of moodle.git `main`, now that Moodle 5.3 is
+  released.
 
 ## [0.2.1] - 2026-10-04
 
