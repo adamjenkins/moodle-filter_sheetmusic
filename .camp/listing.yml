@@ -15,9 +15,17 @@ labels:
   #   fully-free | freemium | paid-service | external-account
   #   donation-supported | commercial-support-available
   - fully-free
-# screenshots:
-#   - path: .camp/screenshots/overview.png
-#     caption: Main view
+screenshots:
+  - path: .camp/screenshots/01-lesson-page.png
+    caption: A course page with scales to practise, each engraved with Play and speed controls.
+  - path: .camp/screenshots/02-playback.png
+    caption: 'A score playing: the current note and its lyric are highlighted.'
+  - path: .camp/screenshots/03-forum-discussion.png
+    caption: 'Notation in a forum discussion: a student''s question and the teacher''s corrected version.'
+  - path: .camp/screenshots/04-quiz-question.png
+    caption: Quiz questions with engraved, playable examples.
+  - path: .camp/screenshots/05-assignment-submission.png
+    caption: 'An assignment brief with notation, and a student''s submitted answer engraved below.'
 links:
   docs: https://github.com/adamjenkins/moodle-filter_sheetmusic#readme
   issues: https://github.com/adamjenkins/moodle-filter_sheetmusic/issues
