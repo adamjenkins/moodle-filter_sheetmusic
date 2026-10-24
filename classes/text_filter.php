@@ -190,14 +190,16 @@ class text_filter extends \core_filters\text_filter {
             return $original;
         }
 
-        // The staff size and whether playback is offered are site settings, and they are put on
-        // the placeholder rather than fetched by the client: the suite has no web service, and
-        // format_text() runs in places from which the client could make no request of its own.
+        // The staff size and whether playback is offered come from the score's own class tokens
+        // where its author chose them, and from the site settings otherwise; display decides which
+        // wins. They are put on the placeholder rather than fetched by the client: the suite has no
+        // web service, and format_text() runs in places from which the client could make no
+        // request of its own.
         $attributes = [
             'class' => 'sheetmusic-block',
             'data-sheetmusic-format' => $format,
             'data-sheetmusic-label' => source::describe($raw, $format),
-        ] + display::attributes();
+        ] + display::attributes($tokens);
 
         // The source stays visible until the client-side renderer replaces it, so a reader
         // without JavaScript, or with the engine unavailable, still gets readable notation.

@@ -16,8 +16,9 @@ With the filter switched off, that source stays on the page as readable notation
 disappearing — the content survives the plugin.
 
 Rendered scores can also be **played**: the transport, the note highlighting and the synthesised
-sound all come from `local_sheetmusic`, and this filter's part is to tell the client whether the
-site allows it. See that plugin's README.
+sound all come from `local_sheetmusic`. This filter's part is to tell the client whether this
+score offers it and at what staff size: the score's own choice where its author made one, the
+site setting otherwise. See that plugin's README.
 
 ## Requirements
 

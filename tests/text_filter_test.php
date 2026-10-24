@@ -62,6 +62,17 @@ final class text_filter_test extends \advanced_testcase {
     }
 
     /**
+     * A stored ABC score whose class list carries extra tokens after the format.
+     *
+     * @param string $extra The space-separated tokens to add.
+     * @return string The stored HTML.
+     */
+    private function stored_with(string $extra): string {
+        $plain = 'class="sheetmusic sheetmusic-abc"';
+        return str_replace($plain, 'class="sheetmusic sheetmusic-abc ' . $extra . '"', $this->stored());
+    }
+
+    /**
      * A stored score becomes a render placeholder that still carries its source.
      *
      * @return void
@@ -98,6 +109,36 @@ final class text_filter_test extends \advanced_testcase {
         $out = $this->filter->filter($this->stored());
         $this->assertStringContainsString('data-sheetmusic-play="0"', $out);
         $this->assertStringNotContainsString('data-sheetmusic-play="1"', $out);
+    }
+
+    /**
+     * A score's own staff-size and playback tokens reach the placeholder over the site settings.
+     *
+     * @return void
+     */
+    public function test_score_tokens_override_display_settings(): void {
+        set_config('defaultscale', 's', 'local_sheetmusic');
+        set_config('playback', 1, 'local_sheetmusic');
+        $stored = $this->stored_with('sheetmusic-scale-l sheetmusic-noplay');
+        $out = $this->filter->filter($stored);
+        $this->assertStringContainsString('data-sheetmusic-scale="l"', $out);
+        $this->assertStringContainsString('data-sheetmusic-play="0"', $out);
+
+        set_config('playback', 0, 'local_sheetmusic');
+        $stored = $this->stored_with('sheetmusic-play');
+        $this->assertStringContainsString('data-sheetmusic-play="1"', $this->filter->filter($stored));
+    }
+
+    /**
+     * With author overrides turned off, a score's play token changes nothing.
+     *
+     * @return void
+     */
+    public function test_play_token_ignored_when_overrides_are_off(): void {
+        set_config('playback', 0, 'local_sheetmusic');
+        set_config('playbackoverride', 0, 'local_sheetmusic');
+        $stored = $this->stored_with('sheetmusic-play');
+        $this->assertStringContainsString('data-sheetmusic-play="0"', $this->filter->filter($stored));
     }
 
     /**

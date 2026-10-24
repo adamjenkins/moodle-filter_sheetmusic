@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'filter_sheetmusic';
-$plugin->version      = 2026100401;
+$plugin->version      = 2026102400;
 $plugin->requires     = 2024100700;
 $plugin->supported    = [405, 503];
 $plugin->maturity     = MATURITY_BETA;
-$plugin->release      = '0.2.2';
+$plugin->release      = '0.3.0';
 $plugin->dependencies = [
-    'local_sheetmusic' => 2026090701,
+    'local_sheetmusic' => 2026102400,
 ];

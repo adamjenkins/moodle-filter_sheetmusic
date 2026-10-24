@@ -3,6 +3,18 @@
 All notable changes to `filter_sheetmusic` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-24
+
+### Added
+
+- The stored `<pre>`'s class tokens are passed to `display::attributes()`, so
+  `sheetmusic-scale-{s,m,l}`, `sheetmusic-play` and `sheetmusic-noplay` reach the placeholder's
+  `data-sheetmusic-scale` / `data-sheetmusic-play` (RELATIONS.md §A3).
+
+### Changed
+
+- Dependency pin raised to `local_sheetmusic` 2026102400 (0.3.0).
+
 ## [0.2.2] - 2026-10-04
 
 ### Fixed
